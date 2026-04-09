@@ -1,0 +1,50 @@
+{
+  "_comment": "Portfolio Optimization Engine v3.0.0 — Configuration Template",
+
+  "efficient_store_pct": 30,
+  "efficiency_gmroi_weight": 0.50,
+  "efficiency_ros_weight": 0.50,
+
+  "gate_weight_spf": 0.70,
+  "gate_weight_q": 0.30,
+  "auto_select_gate_weight": false,
+  "robust_p_low": 5.0,
+  "robust_p_high": 95.0,
+
+  "alpha_min": 0.0,
+  "alpha_max": 1.0,
+  "simplified_alpha_high_gmroi": 0.20,
+  "simplified_alpha_mid_gmroi": 0.45,
+  "simplified_alpha_low_gmroi": 0.60,
+  "max_tier_mix_shift": 0.30,
+
+  "peer_pool_size": 500,
+  "network_stock_threshold": 50,
+  "period_weeks": 52,
+
+  "gmroi_weight": 0.60,
+  "ros_weight": 0.40,
+  "discount_penalty_threshold": 0.25,
+  "discount_penalty_factor": 0.20,
+
+  "max_store_change_pct": 15,
+  "small_store_threshold": 20,
+  "small_store_max_change": 2,
+
+  "do_not_remove": [],
+  "do_not_add": [],
+  "lifecycle_exclusions": [],
+
+  "enable_demand_weighted_benchmark": true,
+  "tvi_clamp_min": 0.70,
+  "tvi_clamp_max": 1.30,
+  "min_tier_sales_qty_for_tvi": 5,
+  "empty_tier_requires_matrix": false,
+
+  "enable_transfers": true,
+  "max_transfer_recommendations": 100,
+  "min_transfer_stock": 2,
+  "max_transfer_qty_per_sku": 5,
+
+  "use_peer_clusters": true
+}

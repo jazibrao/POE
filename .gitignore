@@ -1,9 +1,41 @@
 # Python
 __pycache__/
-*.pyc
-*.pyo
-.env
-venv/
+*.py[cod]
 *.egg-info/
 dist/
 build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Streamlit credentials (do NOT commit)
+.streamlit/credentials.toml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Desktop build artifacts
+*.exe
+*.msi
+*.spec
+
+# Local state
+.poe_state/
+
+# Logs
+*.log
+
+# Large data files (keep templates, exclude user data)
+# Uncomment the next line if you don't want sample_data in the repo:
+# sample_data.xlsx

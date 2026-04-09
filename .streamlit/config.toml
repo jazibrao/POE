@@ -1,0 +1,23 @@
+[server]
+headless = true
+fileWatcherType = "none"
+maxUploadSize = 500
+maxMessageSize = 500
+enableWebsocketCompression = false
+# Security: Enable XSRF and CORS for cloud deployments.
+# The desktop shell (desktop_shell.py) overrides these to False for localhost-only use.
+enableXsrfProtection = true
+enableCORS = true
+
+[runner]
+magicEnabled = false
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+primaryColor = "#0F766E"
+backgroundColor = "#F8FAFB"
+secondaryBackgroundColor = "#F0F4F5"
+textColor = "#111827"
+font = "sans serif"
