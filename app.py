@@ -95,7 +95,7 @@ class AppConfig:
     # Business logic defaults
     DEFAULT_EFFICIENT_STORE_PCT = 30
     DEFAULT_GMROI_WEIGHT = 0.60
-    DEFAULT_ROS_WEIGHT = 0.30
+    DEFAULT_ROS_WEIGHT = 0.40
     DEFAULT_ALPHA_MIN = 0.00
     DEFAULT_ALPHA_MAX = 1.00
     DEFAULT_PEER_POOL_SIZE = 500
@@ -837,14 +837,10 @@ def load_excel_data_from_path(file_path: str, file_name: str) -> Tuple[Optional[
         from engine.io import load_workbook
         stores_df, tiers_df, articles_df = load_workbook(file_path)
 
-        # Resolve sheet names for UI display (lightweight — reads only metadata)
-        try:
-            excel_file = pd.ExcelFile(file_path, engine="openpyxl")
-            stores_sheet = find_matching_sheet(excel_file, 'stores') or 'Auto'
-            tiers_sheet = find_matching_sheet(excel_file, 'tiers') or 'Auto'
-            articles_sheet = find_matching_sheet(excel_file, 'articles') or 'Auto'
-        except Exception:
-            stores_sheet = tiers_sheet = articles_sheet = 'Auto'
+        # Resolve sheet names for UI display
+        # Skip the expensive pd.ExcelFile re-parse — just use column names
+        # from the already-loaded DataFrames to infer which sheets were matched.
+        stores_sheet = tiers_sheet = articles_sheet = 'Auto'
 
         data = {
             'stores': stores_df,
@@ -1256,15 +1252,30 @@ def _render_file_uploader():
             return
 
         # Check if we already loaded this exact file (avoid re-processing on every rerun)
-        file_hash = hashlib.md5(uploaded.getvalue()).hexdigest()
+        # Read bytes ONCE and reuse for both hashing and saving to disk
+        raw_bytes = uploaded.getvalue()
+        file_hash = hashlib.md5(raw_bytes).hexdigest()
         if st.session_state.get('file_hash') == file_hash and st.session_state.get('stores_df') is not None:
+            del raw_bytes  # Free memory
             return  # Already loaded
 
         with st.spinner("Loading and validating data... (this may take 15–30 seconds for large files)"):
             try:
                 from engine.io import load_workbook
-                bytes_io = io.BytesIO(uploaded.getvalue())
-                stores_df, tiers_df, articles_df = load_workbook(bytes_io)
+                import tempfile, os
+                # Save to temp file and process from disk — avoids holding
+                # duplicate in-memory copies (critical on Streamlit Cloud 1 GB)
+                tmp_fd, tmp_path = tempfile.mkstemp(suffix=".xlsx")
+                try:
+                    os.write(tmp_fd, raw_bytes)
+                    os.close(tmp_fd)
+                    del raw_bytes  # Free ~11 MB before openpyxl loads
+                    stores_df, tiers_df, articles_df = load_workbook(tmp_path)
+                finally:
+                    try:
+                        os.unlink(tmp_path)
+                    except OSError:
+                        pass
 
                 st.session_state.stores_df = stores_df
                 st.session_state.tiers_df = tiers_df
