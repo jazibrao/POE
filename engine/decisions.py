@@ -194,8 +194,8 @@ def attach_scores(sku_master: pd.DataFrame, cfg: EngineConfig) -> pd.DataFrame:
     # ------------------------------------------------------------------
     # Weight Normalization
     # ------------------------------------------------------------------
-    w_g = float(getattr(cfg, "score_weight_gmroi", 0.4))
-    w_r = float(getattr(cfg, "score_weight_ros", 0.6))
+    w_g = float(getattr(cfg, "score_weight_gmroi", 0.6))
+    w_r = float(getattr(cfg, "score_weight_ros", 0.4))
     w_p = float(getattr(cfg, "score_weight_price_power", 0.0))
     w_sum = (w_g + w_r + w_p) if (w_g + w_r + w_p) > 0 else 1.0
     w_g, w_r, w_p = w_g / w_sum, w_r / w_sum, w_p / w_sum
