@@ -251,8 +251,8 @@ class TestConfig:
     def test_default_config_creates(self):
         cfg = EngineConfig()
         assert cfg.efficient_top_pct == 0.30
-        assert cfg.score_weight_gmroi == 0.40
-        assert cfg.score_weight_ros == 0.60
+        assert cfg.score_weight_gmroi == 0.60
+        assert cfg.score_weight_ros == 0.40
 
     def test_weights_sum_to_one(self):
         cfg = EngineConfig()
