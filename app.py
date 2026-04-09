@@ -1262,20 +1262,35 @@ def _render_file_uploader():
         with st.spinner("Loading and validating data... (this may take 15–30 seconds for large files)"):
             try:
                 from engine.io import load_workbook
-                import tempfile, os
-                # Save to temp file and process from disk — avoids holding
-                # duplicate in-memory copies (critical on Streamlit Cloud 1 GB)
-                tmp_fd, tmp_path = tempfile.mkstemp(suffix=".xlsx")
+                import gc
+
+                # Strategy: try temp-file-on-disk first (lower memory),
+                # fall back to BytesIO if filesystem is restricted.
+                stores_df = tiers_df = articles_df = None
                 try:
-                    os.write(tmp_fd, raw_bytes)
-                    os.close(tmp_fd)
-                    del raw_bytes  # Free ~11 MB before openpyxl loads
-                    stores_df, tiers_df, articles_df = load_workbook(tmp_path)
-                finally:
+                    import tempfile as _tf
+                    tmp_fd, tmp_path = _tf.mkstemp(suffix=".xlsx")
                     try:
-                        os.unlink(tmp_path)
-                    except OSError:
-                        pass
+                        os.write(tmp_fd, raw_bytes)
+                        os.close(tmp_fd)
+                        del raw_bytes  # Free ~11 MB before openpyxl loads
+                        gc.collect()
+                        stores_df, tiers_df, articles_df = load_workbook(tmp_path)
+                    finally:
+                        try:
+                            os.unlink(tmp_path)
+                        except OSError:
+                            pass
+                except (OSError, PermissionError) as disk_err:
+                    # Temp file failed (read-only filesystem, etc.) — use BytesIO
+                    logger.warning(f"Temp file fallback to BytesIO: {disk_err}")
+                    bytes_io = io.BytesIO(raw_bytes)
+                    del raw_bytes
+                    gc.collect()
+                    stores_df, tiers_df, articles_df = load_workbook(bytes_io)
+                    del bytes_io
+
+                gc.collect()
 
                 st.session_state.stores_df = stores_df
                 st.session_state.tiers_df = tiers_df
@@ -1303,9 +1318,14 @@ def _render_file_uploader():
                 except Exception:
                     pass
 
+            except MemoryError:
+                logger.error("MemoryError during file upload")
+                st.error("❌ Out of memory. Your file is too large for Streamlit Cloud's free tier (1 GB RAM). "
+                         "Try reducing the number of rows or use the Desktop edition instead.")
             except Exception as e:
                 logger.error(f"Upload error: {e}\n{traceback.format_exc()}")
-                st.error(f"❌ Error loading file: {e}")
+                st.error(f"❌ Error loading file: {e}\n\nPlease check that your file has the required sheets "
+                         f"(StoresKPIs, TierKPIs, Articles) and try again.")
 
 
 def _render_path_form():
