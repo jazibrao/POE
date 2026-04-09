@@ -115,9 +115,14 @@ def load_workbook(path_or_file, sheet_map: Optional[Dict[str, list]] = None) -> 
         s_stores = _find_sheet(xl, sheet_map["stores"])
         s_tiers = _find_sheet(xl, sheet_map["tiers"])
         s_articles = _find_sheet(xl, sheet_map["articles"])
-        stores = pd.read_excel(path_or_file, sheet_name=s_stores, engine="openpyxl")
-        tiers = pd.read_excel(path_or_file, sheet_name=s_tiers, engine="openpyxl")
-        articles = pd.read_excel(path_or_file, sheet_name=s_articles, engine="openpyxl")
+        # IMPORTANT: Reuse the already-opened ExcelFile object (xl) for all
+        # sheet reads. Previously, passing path_or_file directly to read_excel
+        # caused openpyxl to re-parse the entire workbook from scratch for each
+        # sheet — 4 total parses for an 11 MB file could consume 800+ MB RAM
+        # and crash Streamlit Cloud's 1 GB free tier.
+        stores = xl.parse(s_stores)
+        tiers = xl.parse(s_tiers)
+        articles = xl.parse(s_articles)
 
         # Normalize columns to canonical engine schema
         stores = _rename_with_aliases(stores, ALIASES_STORES)
@@ -202,7 +207,7 @@ def load_protected_skus(path_or_file, candidates: Optional[list[str]] = None) ->
             sheet = _find_sheet(xl, candidates)
         except Exception:
             return []
-        df = pd.read_excel(path_or_file, sheet_name=sheet, engine="openpyxl")
+        df = xl.parse(sheet)
         df = _rename_with_aliases(df, {"ItemColorName": ["SKU", "Item", "ItemName", "Item Color", "ItemColor"]})
         if "ItemColorName" not in df.columns:
             return []
@@ -250,7 +255,7 @@ def load_eligibility_matrix(path_or_file, candidates: Optional[list[str]] = None
         s = _find_sheet(xl, candidates)
         if not s:
             return None
-        df = pd.read_excel(path_or_file, sheet_name=s, engine="openpyxl")
+        df = xl.parse(s)
         if df is None or df.empty:
             return None
 
