@@ -2,7 +2,7 @@
 headless = true
 fileWatcherType = "none"
 maxUploadSize = 50
-maxMessageSize = 50
+maxMessageSize = 200
 enableWebsocketCompression = true
 # Security: Enable XSRF and CORS for cloud deployments.
 # The desktop shell (desktop_shell.py) overrides these to False for localhost-only use.
