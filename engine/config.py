@@ -53,8 +53,8 @@ class EngineConfig:
 
     # Period configuration for SKU-level scoring
     period_weeks: int = 52
-    score_weight_gmroi: float = 0.40  # Updated to match user preference (40/60)
-    score_weight_ros: float = 0.60    # Updated to match user preference (40/60)
+    score_weight_gmroi: float = 0.60  # GMROI weight in hybrid score (configurable via UI)
+    score_weight_ros: float = 0.40    # ROS weight in hybrid score (configurable via UI)
     score_weight_price_power: float = 0.0  # Disabled by default, use discount penalty instead
     peer_pool_top_n_per_tier: int = 500
 
